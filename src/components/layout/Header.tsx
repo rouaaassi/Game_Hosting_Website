@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, HelpCircle, Gamepad, List, Star, X } from "lucide-react";
+import { Menu, HelpCircle, Gamepad, List, Star, X, FeatherIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, cloneElement } from "react";
@@ -14,12 +14,14 @@ export default function Header() {
   const navItems = [
     { name: "Games", href: "/" },
     { name: "Categories", href: "/categories" },
+    {name: 'Featured' , href:"/featured"}
   ];
 
   const sidebarItems = [
     { name: "Games", icon: <Gamepad size={18} />, href: "/" },
     { name: "Categories", icon: <List size={18} />, href: "/categories" },
     { name: "Favorites", icon: <Star size={18} />, href: "/favorits" },
+     {name: 'Featured' ,icon: <FeatherIcon size={18} />, href:"/featured"}
   ];
 
   return (
