@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, cloneElement } from "react";
 import SearchGames from "../game/SearchGames";
+import SupportModal from "@/components/HelpModel";
 
 export default function Header() {
   const [active, setActive] = useState("Games");
@@ -118,10 +119,14 @@ export default function Header() {
           </div>
 
           {/* Help */}
-          <button className="flex items-center gap-2 text-neonGreen hover:text-white drop-shadow-[0_0_6px_#00ff37] transition mt-4">
-            <HelpCircle size={18} stroke="currentColor" />
-            Help
-          </button>
+        {/* Help */}
+<SupportModal>
+  <button className="flex items-center gap-2 text-neonGreen hover:text-white drop-shadow-[0_0_6px_#00ff37] transition">
+    <HelpCircle size={18} stroke="currentColor" />
+    Help
+  </button>
+</SupportModal>
+
         </div>
       </div>
 
