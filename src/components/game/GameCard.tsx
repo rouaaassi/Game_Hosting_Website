@@ -47,7 +47,10 @@ export default function GameCard({
 
           {/* Image */}
           <div className="relative w-full h-60 rounded-lg overflow-hidden">
-            <Image src={image} alt={title} fill className="object-cover" />
+            <Image src={image} alt={title} fill className="object-cover" 
+              placeholder="blur"
+              blurDataURL={image}
+ />
           </div>
 
           {/* Text */}

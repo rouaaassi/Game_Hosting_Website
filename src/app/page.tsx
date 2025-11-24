@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import GamesSection from "@/components/game/GamesSection";
 import Link from "next/link";

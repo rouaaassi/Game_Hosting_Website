@@ -3,28 +3,24 @@
 import GameCard from "@/components/game/GameCard";
 import { games } from "@/data/games";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect } from "react";
 import { Toaster, toast } from "react-hot-toast";
+import { useFavoritesStore } from "@/store/favoritesStore";
 
 export default function FavoritesPage() {
-  const [favorites, setFavorites] = useState<string[]>(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("favorites");
-      return stored ? JSON.parse(stored) : [];
-    }
-    return [];
-  });
+  const { favorites, toggleFavorite, loadFavorites } = useFavoritesStore();
 
-  const toggleFavorite = (id: string) => {
-    setFavorites((prev) => {
-      const updated = prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id];
-      localStorage.setItem("favorites", JSON.stringify(updated));
-      toast(updated.includes(id) ? "Added to favorites" : "Removed from favorites");
-      return updated;
-    });
-  };
+  useEffect(() => {
+    loadFavorites();
+  }, [loadFavorites]);
 
   const favoriteGames = games.filter((g) => favorites.includes(g.id));
+
+  const handleToggleFavorite = (id: string) => {
+    const isAdding = !favorites.includes(id);
+    toggleFavorite(id);
+    toast(isAdding ? "Added to favorites" : "Removed from favorites");
+  };
 
   if (favoriteGames.length === 0)
     return (
@@ -35,26 +31,27 @@ export default function FavoritesPage() {
     );
 
   return (
-    <div className="bg-[#121010] min-h-screen pt-24 px-6 md:px-14 ">
-       <div className="mb-6">
+    <div className="bg-[#121010] min-h-screen pt-24 px-6 md:px-14">
+      <div className="mb-6">
         <Link href="/" className="flex items-center text-green-400 font-semibold hover:underline">
           ← Back
         </Link>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6" >
-      {favoriteGames.map((game) => (
-        <GameCard
-          key={game.id}
-          id={game.id}
-          title={game.title}
-          description={game.description}
-          image={game.thumbnail}
-          favorites={favorites}
-          onToggleFavorite={toggleFavorite}
-          onPlay={() => window.open(game.iframeUrl, "_blank")}
-        />
-      ))}
-      <Toaster position="top-right" />
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        {favoriteGames.map((game) => (
+          <GameCard
+            key={game.id}
+            id={game.id}
+            title={game.title}
+            description={game.description}
+            image={game.thumbnail}
+            favorites={favorites}
+            onToggleFavorite={handleToggleFavorite}
+            onPlay={() => window.open(game.iframeUrl, "_blank")}
+          />
+        ))}
+        <Toaster position="top-right" />
       </div>
     </div>
   );

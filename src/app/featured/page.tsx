@@ -3,41 +3,42 @@
 import GameCard from "@/components/game/GameCard";
 import { games } from "@/data/games";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect } from "react";
 import { Toaster, toast } from "react-hot-toast";
+import { useFavoritesStore } from "@/store/favoritesStore";
 
 export default function FeaturedPage() {
-  const [favorites, setFavorites] = useState<string[]>(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("favorites");
-      return stored ? JSON.parse(stored) : [];
-    }
-    return [];
-  });
+  const { favorites, toggleFavorite, loadFavorites } = useFavoritesStore();
 
-  const toggleFavorite = (id: string) => {
-    setFavorites((prev) => {
-      const updated = prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id];
-      localStorage.setItem("favorites", JSON.stringify(updated));
-      toast(updated.includes(id) ? "Added to favorites" : "Removed from favorites");
-      return updated;
-    });
-  };
+  useEffect(() => {
+    loadFavorites();
+  }, [loadFavorites]);
 
   const featuredGames = games.filter((g) => g.category === "Sports");
+
+  const handleToggleFavorite = (id: string) => {
+    const isAdding = !favorites.includes(id);
+    toggleFavorite(id);
+    toast(isAdding ? "Added to favorites" : "Removed from favorites");
+  };
 
   if (featuredGames.length === 0)
     return (
       <div className="bg-[#121010] min-h-screen pt-24 px-6 md:px-14">
         <Toaster position="top-right" />
-        <p className="text-white text-center mt-10">No featured games in Sports category!</p>
+        <p className="text-white text-center mt-10">
+          No featured games in Sports category!
+        </p>
       </div>
     );
 
   return (
     <div className="bg-[#121010] min-h-screen pt-24 px-6 md:px-14">
       <div className="mb-6">
-        <Link href="/" className="flex items-center text-green-400 font-semibold hover:underline">
+        <Link
+          href="/"
+          className="flex items-center text-green-400 font-semibold hover:underline"
+        >
           ← Back
         </Link>
       </div>
@@ -51,7 +52,7 @@ export default function FeaturedPage() {
             description={game.description}
             image={game.thumbnail}
             favorites={favorites}
-            onToggleFavorite={toggleFavorite}
+            onToggleFavorite={handleToggleFavorite}
             onPlay={() => window.open(game.iframeUrl, "_blank")}
           />
         ))}

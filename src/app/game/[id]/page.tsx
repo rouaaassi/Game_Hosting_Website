@@ -11,71 +11,64 @@ import { useEffect, useState } from "react";
 import GameLoading from "@/components/loading/page";
 import { Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useGameStore } from "@/store/gameStore";
 
 export default function GameDetailsPage() {
   const { id } = useParams();
-const [openRating, setOpenRating] = useState(false);
- const [isLoading, setIsLoading] = useState(true);
-const [iframeError, setIframeError] = useState(false);
+
+  const [openRating, setOpenRating] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [iframeError, setIframeError] = useState(false);
+
+  const addRating = useGameStore((s) => s.addRating);
+  const ratings = useGameStore((s) => s.ratings);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 7000);
-
+    const timer = setTimeout(() => setIsLoading(false), 7000);
     return () => clearTimeout(timer);
   }, []);
-useEffect(() => {
-  const errorTimer = setTimeout(() => {
-    setIframeError(true);
-  }, 1000000);
 
-  return () => clearTimeout(errorTimer);
-}, []);
+  useEffect(() => {
+    const errorTimer = setTimeout(() => setIframeError(true), 1000000);
+    return () => clearTimeout(errorTimer);
+  }, []);
 
-  if (isLoading) {
-    return <GameLoading />; 
-  }
+  if (isLoading) return <GameLoading />;
+
   const game = games.find((g) => String(g.id) === String(id));
-
-  if (!game) {
-    return <HandleError />;
-  }
+  if (!game) return <HandleError />;
 
   const similarGames = games.filter(
     (g) => g.category === game.category && g.id !== game.id
   );
-  const handleShare = async () => {
-  if (navigator.share) {
-    try {
-      await navigator.share({
-        title: game.title,
-        text: "Check out this awesome game!",
-        url: game.iframeUrl,
-      });
-    } catch (err) {
-      console.log("Share cancelled", err);
-    }
-  } else {
-    await navigator.clipboard.writeText(game.iframeUrl);
-    toast.success("Link copied to clipboard!");
-  }
-};
 
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: game.title,
+          text: "Check out this awesome game!",
+          url: game.iframeUrl,
+        });
+      } catch {}
+    } else {
+      await navigator.clipboard.writeText(game.iframeUrl);
+      toast.success("Link copied to clipboard!");
+    }
+  };
+
+  const currentRating = ratings[game.id];
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white p-6 pt-24">
-
-      {/* Back Button */}
       <Link
         href="/"
-        className="inline-block mb-6 px-4 py-2  rounded hover:text-green-500 transition"
+        className="inline-block mb-6 px-4 py-2 rounded hover:text-green-500 transition"
       >
         ← Back
       </Link>
 
       <div className="flex flex-col md:flex-row gap-10">
-
         <div className="relative w-full md:w-1/3 h-64 md:h-80">
           <Image
             src={game.thumbnail}
@@ -86,15 +79,15 @@ useEffect(() => {
         </div>
 
         <div className="flex-1">
-            <div className="flex flex-row justify-between">
-          <h1 className="text-3xl font-bold text-green-400">{game.title}</h1>
-          <div className="flex flex-row gap-1 border-b-2 border-gray-300 text-gray-300 hover:text-green-500 hover:border-green-600">
-            <Button onClick={handleShare}>share 
-            <Share2 className="w-4" />
-            
+          <div className="flex flex-row justify-between">
+            <h1 className="text-3xl font-bold text-green-400">{game.title}</h1>
+
+            <Button onClick={handleShare}>
+              Share
+              <Share2 className="w-4 ml-2" />
             </Button>
           </div>
-          </div>
+
           <p className="text-gray-300 mt-3 text-lg leading-relaxed">
             {game.description}
           </p>
@@ -103,12 +96,20 @@ useEffect(() => {
             <strong>Category:</strong> {game.category}
           </p>
 
-          {/* Rating */}
+          {/* Rating System */}
           <div className="mt-5">
-            <p className="text-yellow-400 text-xl">⭐⭐⭐⭐☆ 4.6</p>
+            {currentRating ? (
+             <p className="text-yellow-400 text-xl">⭐⭐⭐⭐☆ 4.6</p>
 
-            <button  onClick={() => setOpenRating(true)} className="mt-2 px-4 py-2 bg-green-500 text-black rounded hover:bg-green-400 transition">
-              Rate this game 
+            ) : (
+              <p className="text-gray-400">No rating yet</p>
+            )}
+
+            <button
+              onClick={() => setOpenRating(true)}
+              className="mt-2 px-4 py-2 bg-green-500 text-black rounded hover:bg-green-400 transition"
+            >
+              Rate this game
             </button>
           </div>
         </div>
@@ -117,20 +118,20 @@ useEffect(() => {
       <div className="mt-10">
         <h2 className="text-2xl font-semibold mb-4 text-green-400">Play Now</h2>
 
-       <div className="relative w-full h-[70vh] bg-black rounded-xl overflow-hidden shadow-[0_0_20px_#00ff37]">
-  {iframeError ? (
-    <HandleError />
-  ) : (
-    <iframe
-      src={game.iframeUrl}
-      className="w-full h-full border-none"
-      allowFullScreen
-    ></iframe>
-  )}
-</div>
+        <div className="relative w-full h-[70vh] bg-black rounded-xl overflow-hidden shadow-[0_0_20px_#00ff37]">
+          {iframeError ? (
+            <HandleError />
+          ) : (
+            <iframe
+              src={game.iframeUrl}
+              className="w-full h-full border-none"
+              allowFullScreen
+            ></iframe>
+          )}
+        </div>
       </div>
 
-      {/* Similar Games Section */}
+      {/* Similar Games */}
       {similarGames.length > 0 && (
         <div className="mt-14">
           <h2 className="text-2xl font-semibold mb-4 text-green-400">
@@ -142,8 +143,7 @@ useEffect(() => {
               <Link
                 key={sim.id}
                 href={`/game/${sim.id}`}
-                className="bg-[#1a1a1a] p-3 rounded-xl border border-green-700/40
-                hover:shadow-[0_0_15px_#00ff37] transition"
+                className="bg-[#1a1a1a] p-3 rounded-xl border border-green-700/40 hover:shadow-[0_0_15px_#00ff37] transition"
               >
                 <div className="relative w-full h-40 rounded-lg overflow-hidden">
                   <Image
@@ -163,16 +163,17 @@ useEffect(() => {
           </div>
         </div>
       )}
-      <RatingModal
-  open={openRating}
-  onClose={() => setOpenRating(false)}
-  onSubmit={(data) => {
-    console.log("Rating submitted:", data);
-    toast.success("Rating submitted succefully");
-  }}
-/>
 
+      {/* Rating Modal */}
+      <RatingModal
+        open={openRating}
+        onClose={() => setOpenRating(false)}
+        onSubmit={(data) => {
+          addRating(game.id, data.rating, data.feedback); 
+          toast.success("Rating submitted successfully");
+          setOpenRating(false);
+        }}
+      />
     </div>
   );
 }
-

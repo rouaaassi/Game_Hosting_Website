@@ -1,45 +1,30 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import GameCard from "./GameCard";
 import GameFilter from "./GameFilter";
 import { games } from "@/data/games";
 import { Toaster } from "react-hot-toast";
+import { useFavoritesStore } from "@/store/favoritesStore";
+import { useGameStore } from "@/store/gameStore";
 
 export default function GamesSection() {
   const categories = ["Action", "Adventure", "Racing", "Puzzle"];
-  const [activeCategories, setActiveCategories] = useState<string[]>([]);
 
-  // Favorites state
-  const [favorites, setFavorites] = useState<string[]>(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("favorites");
-      return stored ? JSON.parse(stored) : [];
-    }
-    return [];
-  });
+  // Favorites Store
+  const { favorites, toggleFavorite, loadFavorites } = useFavoritesStore();
 
-  // Save favorites to localStorage on change
+  // Load favorites once when component mounts
   useEffect(() => {
-    localStorage.setItem("favorites", JSON.stringify(favorites));
-  }, [favorites]);
+    loadFavorites();
+  }, [loadFavorites]);
 
-  const toggleFavorite = (id: string) => {
-    setFavorites((prev) =>
-      prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]
-    );
-  };
+  // Filters Store
+  const activeCategories = useGameStore((s) => s.categories);
+  const toggleCategory = useGameStore((s) => s.toggleCategory);
+  const clearFilters = useGameStore((s) => s.clearFilters);
 
-  const handleCategoryChange = (category: string) => {
-    setActiveCategories((prev) =>
-      prev.includes(category)
-        ? prev.filter((c) => c !== category)
-        : [...prev, category]
-    );
-  };
-
-  const handleClearFilters = () => setActiveCategories([]);
-
+  // Filter logic using categories from Zustand
   const filteredGames =
     activeCategories.length === 0
       ? games
@@ -48,7 +33,7 @@ export default function GamesSection() {
   return (
     <div className="px-6 md:px-14 py-12 h-m-[100%] bg-[#121010]">
       <Toaster position="top-right" />
-      
+
       <div className="flex md:flex-row md:justify-between md:items-center gap-5 mb-4 flex-col">
         <h3 className="text-xl md:text-2xl font-bold text-white drop-shadow-[0_0_6px_#00ff37]">
           Featured Games
@@ -58,8 +43,8 @@ export default function GamesSection() {
         <GameFilter
           categories={categories}
           activeCategories={activeCategories}
-          onChange={handleCategoryChange}
-          onClear={handleClearFilters}
+          onChange={toggleCategory}
+          onClear={clearFilters}
         />
       </div>
 
